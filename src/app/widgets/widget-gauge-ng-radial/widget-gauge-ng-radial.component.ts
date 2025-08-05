@@ -35,7 +35,7 @@ export class WidgetGaugeNgRadialComponent extends BaseWidgetComponent implements
   // Gauge text value for value box rendering
   public textValue: string = "--";
   // Gauge value
-  public value: number = 0;
+  public value: number = 30;
 
   // Gauge options
   public gaugeOptions = {} as RadialGaugeOptions;
@@ -289,18 +289,22 @@ export class WidgetGaugeNgRadialComponent extends BaseWidgetComponent implements
     this.gaugeOptions.units = this.widgetProperties.config.paths['gaugePath'].convertUnitTo;
     this.gaugeOptions.fontTitleSize = 40;
     this.gaugeOptions.barProgress = true;
-    this.gaugeOptions.barWidth = 20;
-
-    this.gaugeOptions.colorBarProgress = this.getColors(this.widgetProperties.config.color).dim;
+    this.gaugeOptions.barWidth = 28;
+    this.gaugeOptions.barProgressRound = true;
+    this.gaugeOptions.barStrokeWidth = 0;
+    this.gaugeOptions.barShadow = 2;
+    this.gaugeOptions.colorBarProgress = "#4fc3f7";
 
     this.gaugeOptions.valueBox = true;
-    this.gaugeOptions.fontValueSize = 60;
-    this.gaugeOptions.valueBoxWidth = 10;
-    this.gaugeOptions.valueBoxBorderRadius = 5;
+    this.gaugeOptions.fontValueSize = 64;
+    this.gaugeOptions.valueBoxWidth = 80;
+    this.gaugeOptions.valueBoxBorderRadius = 12;
     this.gaugeOptions.valueBoxStroke = 0;
-    this.gaugeOptions.colorValueBoxBackground = '';
-    this.gaugeOptions.colorValueBoxRect = '';
-    this.gaugeOptions.colorValueBoxRectEnd = '';
+    this.gaugeOptions.colorValueBoxBackground = "#23242a";
+    this.gaugeOptions.colorValueBoxRect = "#333";
+    this.gaugeOptions.colorValueBoxRectEnd = "#23242a";
+    this.gaugeOptions.valueTextShadow = true;
+    this.gaugeOptions.colorValueBoxShadow = "rgba(0,0,0,0.18)";
 
     this.gaugeOptions.ticksAngle = 360;
     this.gaugeOptions.startAngle = 180;
@@ -311,24 +315,46 @@ export class WidgetGaugeNgRadialComponent extends BaseWidgetComponent implements
     this.gaugeOptions.numbersMargin = 0;
     this.gaugeOptions.fontNumbersSize = 0;
 
-    this.gaugeOptions.colorMajorTicks = this.gaugeOptions.colorPlate; // canvas gauge bug with MajorTicks; always drawing first tick and using color="" does not work
-    this.gaugeOptions.colorNumbers = this.gaugeOptions.colorMinorTicks = "";
+    this.gaugeOptions.colorMajorTicks = "#888";
+    this.gaugeOptions.colorMinorTicks = "#aaa";
+    this.gaugeOptions.colorNumbers = "#bbb";
+
+    this.gaugeOptions.colorTitle = "#bbb";
+    this.gaugeOptions.colorUnits = "#bbb";
+    this.gaugeOptions.colorValueText = "#fff";
 
     this.gaugeOptions.needle = true;
     this.gaugeOptions.needleType = this.LINE;
-    this.gaugeOptions.needleWidth = 2;
-    this.gaugeOptions.needleShadow = false;
-    this.gaugeOptions.needleStart = 75;
-    this.gaugeOptions.needleEnd = 95;
-    this.gaugeOptions.needleCircleSize = 1;
-    this.gaugeOptions.needleCircleInner = false;
-    this.gaugeOptions.needleCircleOuter = false;
+    this.gaugeOptions.needleWidth = 5;
+    this.gaugeOptions.needleShadow = true;
+    this.gaugeOptions.needleCircleSize = 12;
+    this.gaugeOptions.needleCircleInner = true;
+    this.gaugeOptions.needleCircleOuter = true;
+    this.gaugeOptions.colorNeedle = "#fff";
+    this.gaugeOptions.colorNeedleEnd = "#4fc3f7";
 
     this.gaugeOptions.borders = true;
-    this.gaugeOptions.borderOuterWidth = 2;
-    this.gaugeOptions.borderMiddleWidth = 1;
+    this.gaugeOptions.colorBorderOuter = "transparent";
+    this.gaugeOptions.colorBorderOuterEnd = "";
+    this.gaugeOptions.colorBorderMiddle = "transparent";
+    this.gaugeOptions.colorBorderMiddleEnd = "";
+    this.gaugeOptions.colorBorderInner = "transparent";
+    this.gaugeOptions.borderOuterWidth = 0;
+    this.gaugeOptions.borderMiddleWidth = 0;
     this.gaugeOptions.borderInnerWidth = 0;
     this.gaugeOptions.borderShadowWidth = 0;
+
+    this.gaugeOptions.colorPlate = "#23242a";
+    this.gaugeOptions.colorPlateEnd = "#23242a";
+
+    this.gaugeOptions.fontTitle = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontTitleWeight = "600";
+    this.gaugeOptions.fontUnits = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontUnitsWeight = "400";
+    this.gaugeOptions.fontValue = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontValueWeight = "bold";
+    this.gaugeOptions.fontNumbers = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontNumbersWeight = "500";
 
     this.gaugeOptions.animationTarget = this.ANIMATION_TARGET_NEEDLE;
     this.gaugeOptions.useMinPath = false;
@@ -345,14 +371,22 @@ export class WidgetGaugeNgRadialComponent extends BaseWidgetComponent implements
     this.gaugeOptions.fontTitleSize = 24;
 
     this.gaugeOptions.barProgress = true;
-    this.gaugeOptions.barWidth = 15;
+    this.gaugeOptions.barWidth = 28;
+    this.gaugeOptions.barProgressRound = true;
+    this.gaugeOptions.barStrokeWidth = 0;
+    this.gaugeOptions.barShadow = 2;
+    this.gaugeOptions.colorBarProgress = "#e5e7eb";
 
     this.gaugeOptions.valueBox = true;
-    this.gaugeOptions.fontValueSize = 60;
-    this.gaugeOptions.valueBoxWidth = 100;
-    this.gaugeOptions.valueBoxBorderRadius = 0;
+    this.gaugeOptions.fontValueSize = 64;
+    this.gaugeOptions.valueBoxWidth = 80;
+    this.gaugeOptions.valueBoxBorderRadius = 12;
     this.gaugeOptions.valueBoxStroke = 0;
-    this.gaugeOptions.colorValueBoxBackground = "";
+    this.gaugeOptions.colorValueBoxBackground = "transparent";
+    this.gaugeOptions.colorValueBoxRect = "#333";
+    this.gaugeOptions.colorValueBoxRectEnd = "#23242a";
+    this.gaugeOptions.valueTextShadow = true;
+    this.gaugeOptions.colorValueBoxShadow = "rgba(0,0,0,0.18)";
 
     this.gaugeOptions.exactTicks = false;
     this.gaugeOptions.majorTicks = scale.majorTicks;
@@ -363,21 +397,48 @@ export class WidgetGaugeNgRadialComponent extends BaseWidgetComponent implements
     this.gaugeOptions.numbersMargin = 3;
     this.gaugeOptions.fontNumbersSize = 15;
 
+    this.gaugeOptions.colorMajorTicks = "#888";
+    this.gaugeOptions.colorMinorTicks = "#aaa";
+    this.gaugeOptions.colorNumbers = "#bbb";
+
+    this.gaugeOptions.colorTitle = "#bbb";
+    this.gaugeOptions.colorUnits = "#bbb";
+    this.gaugeOptions.colorValueText = "#fff";
+
+    this.gaugeOptions.borderRadius = 12;
+
     this.gaugeOptions.needle = true;
     this.gaugeOptions.needleType = this.LINE;
     this.gaugeOptions.needleWidth = 2;
-    this.gaugeOptions.needleShadow = false;
-    this.gaugeOptions.needleStart = 0;
-    this.gaugeOptions.needleEnd = 95;
-    this.gaugeOptions.needleCircleSize = 10;
-    this.gaugeOptions.needleCircleInner = false;
-    this.gaugeOptions.needleCircleOuter = false;
+    this.gaugeOptions.needleShadow = true;
+    this.gaugeOptions.needleCircleSize = 12;
+    this.gaugeOptions.needleCircleInner = true;
+    this.gaugeOptions.needleCircleOuter = true;
+    this.gaugeOptions.colorNeedle = "#6b7280";
+    this.gaugeOptions.colorNeedleEnd = "#6b7280";
 
     this.gaugeOptions.borders = true;
-    this.gaugeOptions.borderOuterWidth = 2;
-    this.gaugeOptions.borderMiddleWidth = 1;
+    this.gaugeOptions.colorBorderOuter = "transparent";
+    this.gaugeOptions.colorBorderOuterEnd = "";
+    this.gaugeOptions.colorBorderMiddle = "transparent";
+    this.gaugeOptions.colorBorderMiddleEnd = "";
+    this.gaugeOptions.colorBorderInner = "transparent";
+    this.gaugeOptions.borderOuterWidth = 0;
+    this.gaugeOptions.borderMiddleWidth = 0;
     this.gaugeOptions.borderInnerWidth = 0;
     this.gaugeOptions.borderShadowWidth = 0;
+
+    this.gaugeOptions.colorPlate = "#23242a";
+    this.gaugeOptions.colorPlateEnd = "#23242a";
+
+    this.gaugeOptions.fontTitle = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontTitleWeight = "600";
+    this.gaugeOptions.fontUnits = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontUnitsWeight = "400";
+    this.gaugeOptions.fontValue = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontValueWeight = "bold";
+    this.gaugeOptions.fontNumbers = "Inter, Roboto, Arial, sans-serif";
+    this.gaugeOptions.fontNumbersWeight = "500";
 
     this.gaugeOptions.animationTarget = this.ANIMATION_TARGET_NEEDLE;
     this.gaugeOptions.useMinPath = false;

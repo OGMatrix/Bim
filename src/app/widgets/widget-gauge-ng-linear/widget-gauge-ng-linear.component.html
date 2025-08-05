@@ -1,6 +1,47 @@
 <widget-host [(config)]="widgetProperties.config" [id]="widgetProperties.uuid" (configChange)="updateConfig($event)" #host>
-  <linear-gauge class="linearGauge" id="{{widgetProperties.uuid}}" #linearGauge (onResize)="onResized($event)"
-    [options]="gaugeOptions"
-    [value]="value"
-    ></linear-gauge>
+  <div class="custom-linear-gauge">
+    <div class="gauge-svg-container" [ngClass]="{'vertical': !isHorizontal}">
+      <svg [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight" preserveAspectRatio="xMinYMin meet" class="svg-ng-linear-gauge">
+        <defs>
+          <linearGradient id="cursorShadowGradient" x1="0" y1="0" 
+            [attr.x2]="1 + shadowStrength * 0.5" y2="0">
+            <stop offset="0%" stop-color="transparent" [attr.stop-opacity]="0.3 + 0.5 * shadowStrength"/>
+            <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Background parallelogram -->
+        <polygon [attr.points]="backgroundPoints" class="gauge-bg"/>
+        <!-- Filled progress parallelogram with dynamic shadow -->
+        <polygon [attr.points]="progressPoints" class="gauge-progress"/>
+        <!-- Cursor trailing shadow -->
+        <polygon [attr.points]="shadowPoints" fill="url(#cursorShadowGradient)" class="gauge-cursor-shadow"/>
+        <!-- Cursor parallelogram or rounded rectangle -->
+        <ng-container *ngIf="isHorizontal; else verticalCursor">
+          <polygon [attr.points]="cursorPoints" class="gauge-cursor"/>
+        </ng-container>
+        <ng-template #verticalCursor>
+          <ng-container *ngIf="cursorPoints.startsWith('rect:'); else polyCursor">
+            <rect *ngIf="cursorPoints.startsWith('rect:')"
+              [attr.x]="cursorPoints.split(':')[1].split(',')[0]"
+              [attr.y]="cursorPoints.split(':')[1].split(',')[1]"
+              [attr.width]="cursorPoints.split(':')[1].split(',')[2]"
+              [attr.height]="cursorPoints.split(':')[1].split(',')[3]"
+              rx="4" ry="4"
+              class="gauge-cursor-rect"/>
+          </ng-container>
+          <ng-template #polyCursor>
+            <polygon [attr.points]="cursorPoints" class="gauge-cursor"/>
+          </ng-template>
+        </ng-template>
+        <!-- Value label for both horizontal and vertical mode -->
+        <text
+          [attr.x]="valueLabelX"
+          [attr.y]="valueLabelY"
+          [attr.text-anchor]="isHorizontal ? (mirror ? 'end' : 'start') : 'middle'"
+          alignment-baseline="baseline"
+          class="gauge-value-svg"
+        >{{ value | number: '1.1-2' }} {{ units }}</text>
+      </svg>
+    </div>
+  </div>
 </widget-host>

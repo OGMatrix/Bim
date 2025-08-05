@@ -62,8 +62,8 @@ export class SignalkRequestsService {
     const deviceTokenRequest = {
       requestId: requestId,
       accessRequest: {
-        clientId: this.appSettingsService.KipUUID,
-        description: "KIP Instrument MDF",
+        clientId: this.appSettingsService.BimUUID,
+        description: "BIM Instrument MFD",
         permissions: "admin"
       }
     }

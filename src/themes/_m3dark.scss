@@ -7,7 +7,7 @@
 // Note: Color palettes are generated from primary: #347EFF, secondary: #bfc6dc, tertiary: #D0A600, neutral: #76777d #7c7c7c
 $_palettes: (
   primary: (
-    0: #000000,
+    0: transparent,
     10: #001944,
     20: #002d6d,
     25: #003783,
@@ -62,7 +62,7 @@ $_palettes: (
   ),
   neutral: (
     0: #000000,
-    10: #191c1d,
+    10: #17171c,
     20: #2e3132,
     25: #393c3d,
     30: #444748,
@@ -90,7 +90,7 @@ $_palettes: (
   ),
   neutral-variant: (
     0: #000000,
-    10: #141d1f,
+    10: #17171c,
     20: #293234,
     25: #343d3f,
     30: #3f484a,

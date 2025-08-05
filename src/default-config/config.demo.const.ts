@@ -669,7 +669,7 @@ export const DemoConfig: IConfig = {
 
 export const DemoConnectionConfig: IConnectionConfig = {
   "configVersion": 11,
-  "kipUUID": UUID.create(),
+  "bimUUID": UUID.create(),
   "signalKUrl": "https://demo.signalk.org",
   "proxyEnabled": false,
   "signalKSubscribeAll": false,

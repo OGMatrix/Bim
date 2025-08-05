@@ -8,6 +8,7 @@
 import { ViewChild, Component, OnInit, OnDestroy, AfterViewInit, ElementRef, effect } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { NgxResizeObserverModule } from 'ngx-resize-observer';
+import { CommonModule } from '@angular/common';
 
 import { IDataHighlight } from '../../core/interfaces/widgets-interface';
 import { LinearGaugeOptions, LinearGauge, GaugesModule, RadialGaugeOptions } from '@godind/ng-canvas-gauges';
@@ -22,17 +23,19 @@ import { adjustLinearScaleAndMajorTicks } from '../../core/utils/dataScales';
     templateUrl: './widget-gauge-ng-linear.component.html',
     styleUrls: ['./widget-gauge-ng-linear.component.scss'],
     standalone: true,
-    imports: [WidgetHostComponent, NgxResizeObserverModule, GaugesModule]
+    imports: [CommonModule, WidgetHostComponent, NgxResizeObserverModule, GaugesModule]
 })
 
-export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('linearGauge', {static: true, read: LinearGauge}) protected ngGauge: LinearGauge;
-  @ViewChild('linearGauge', {static: true, read: ElementRef}) protected gauge: ElementRef;
-
+export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements OnInit, OnDestroy {
   // Gauge text value for value box rendering
   public textValue: string = "--";
   // Gauge value
-  public value: number = 0;
+  public value: number = 20;
+  private lastValue: number = 20;
+  private lastTimestamp: number = Date.now();
+  public shadowStrength: number = 0.2; // 0.2 to 1.0
+  public simulate: boolean = false; // set to true to enable simulation
+  private simInterval: any;
 
   // Gauge options
   public gaugeOptions = {} as LinearGaugeOptions;
@@ -41,6 +44,347 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
   // Zones support
   private metaSub: Subscription;
   private state: string = States.Normal;
+
+  // SVG Gauge Properties for viewBox 0 0 300 60 (horizontal) or 0 0 60 300 (vertical)
+  get isHorizontal(): boolean {
+    return (this.widgetProperties?.config?.gauge?.subType ?? 'horizontal') === 'horizontal';
+  }
+
+  get svgWidth(): number {
+    return this.isHorizontal ? 500 : 60;
+  }
+  get svgHeight(): number {
+    return this.isHorizontal ? 60 : 400;
+  }
+
+  get barProps() {
+    if (this.isHorizontal) {
+      // Horizontal bar
+      return {
+        barSlant: 25,
+        barMargin: 5,
+        barX0: 25 + 5,
+        barX1: 500 - 5 - 25,
+        barY: 15,
+        barHeight: 30
+      };
+    } else {
+      // Vertical bar: use full height, centered horizontally, never overflow left
+      const svgW = 60, svgH = 400;
+      const barWidth = 30;
+      const barSlant = 25;
+      // Clamp barX so barX - barSlant >= 0 and barX + barWidth <= svgW
+      let barX = (svgW - barWidth) / 2;
+      if (barX - barSlant < 0) barX = barSlant;
+      if (barX + barWidth > svgW) barX = svgW - barWidth;
+      return {
+        barSlant,
+        barMargin: 0,
+        barY0: 0,
+        barY1: svgH,
+        barX,
+        barWidth
+      };
+    }
+  }
+
+  get backgroundPoints(): string {
+    if (this.isHorizontal) {
+      const { barSlant, barX0, barX1, barY, barHeight } = this.barProps;
+      if (!this.mirror) {
+        const x0 = barX0, y0 = barY;
+        const x1 = barX1, y1 = barY;
+        const x2 = barX1 - barSlant, y2 = barY + barHeight;
+        const x3 = barX0 - barSlant, y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      } else {
+        const x0 = barX1, y0 = barY;
+        const x1 = barX0, y1 = barY;
+        const x2 = barX0 + barSlant, y2 = barY + barHeight;
+        const x3 = barX1 + barSlant, y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      }
+    } else {
+      // Vertical: parallelogram fits SVG exactly
+      const { barSlant, barY0, barY1, barX, barWidth } = this.barProps;
+      if (!this.mirror) {
+        // Bottom-left, bottom-right, top-right, top-left
+        const bl_x = barX - barSlant, bl_y = barY1;
+        const br_x = barX + barWidth - barSlant, br_y = barY1;
+        const tr_x = barX + barWidth, tr_y = barY0;
+        const tl_x = barX, tl_y = barY0;
+        return `${bl_x},${bl_y} ${br_x},${br_y} ${tr_x},${tr_y} ${tl_x},${tl_y}`;
+      } else {
+        // Mirrored: slant on the other side
+        const bl_x = barX + barWidth + barSlant, bl_y = barY1;
+        const br_x = barX + barSlant, br_y = barY1;
+        const tr_x = barX, tr_y = barY0;
+        const tl_x = barX + barWidth, tl_y = barY0;
+        return `${bl_x},${bl_y} ${br_x},${br_y} ${tr_x},${tr_y} ${tl_x},${tl_y}`;
+      }
+    }
+  }
+
+  get progressPoints(): string {
+    const min = this.widgetProperties?.config?.displayScale?.lower ?? 0;
+    const max = this.widgetProperties?.config?.displayScale?.upper ?? 100;
+    const percent = Math.max(0, Math.min(1, (this.value - min) / (max - min)));
+    if (percent === 0) return '';
+    if (this.isHorizontal) {
+      const { barSlant, barX0, barX1, barY, barHeight } = this.barProps;
+      const fillLen = (barX1 - barX0) * percent;
+      if (!this.mirror) {
+        const x0 = barX0 - barSlant, y0 = barY + barHeight;
+        const x1 = barX0, y1 = barY;
+        const x2 = barX0 + fillLen, y2 = barY;
+        const x3 = (fillLen < barSlant)
+          ? barX0 - barSlant + fillLen
+          : barX0 + fillLen - barSlant, y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      } else {
+        const x0 = barX1 + barSlant, y0 = barY + barHeight;
+        const x1 = barX1, y1 = barY;
+        const x2 = barX1 - fillLen, y2 = barY;
+        const x3 = (fillLen < barSlant)
+          ? barX1 + barSlant - fillLen
+          : barX1 - fillLen + barSlant, y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      }
+    } else {
+      // Vertical: always fill bottom to top, but parallelogram shape is mirrored if mirror is true
+      const { barSlant, barY0, barY1, barX, barWidth } = this.barProps;
+      if (!this.mirror) {
+        // Bottom edge (background parallelogram)
+        const bx0 = barX - barSlant, by0 = barY1;
+        const bx1 = barX + barWidth - barSlant, by1 = barY1;
+        // Top edge (background parallelogram)
+        const tx0 = barX, ty0 = barY0;
+        const tx1 = barX + barWidth, ty1 = barY0;
+        // Interpolate fill front (top) between bottom and top
+        const fy0 = by0 - (by0 - ty0) * percent;
+        const fy1 = by1 - (by1 - ty1) * percent;
+        const fx0 = bx0 + (tx0 - bx0) * percent;
+        const fx1 = bx1 + (tx1 - bx1) * percent;
+        return `${bx0},${by0} ${bx1},${by1} ${fx1},${fy1} ${fx0},${fy0}`;
+      } else {
+        // Mirrored parallelogram, but fill still bottom to top
+        const bx0 = barX + barWidth + barSlant, by0 = barY1;
+        const bx1 = barX + barSlant, by1 = barY1;
+        const tx0 = barX + barWidth, ty0 = barY0;
+        const tx1 = barX, ty1 = barY0;
+        // Interpolate fill front (top) between bottom and top
+        const fy0 = by0 - (by0 - ty0) * percent;
+        const fy1 = by1 - (by1 - ty1) * percent;
+        const fx0 = bx0 + (tx0 - bx0) * percent;
+        const fx1 = bx1 + (tx1 - bx1) * percent;
+        return `${bx0},${by0} ${bx1},${by1} ${fx1},${fy1} ${fx0},${fy0}`;
+      }
+    }
+  }
+
+  get cursorPoints(): string {
+    const min = this.widgetProperties?.config?.displayScale?.lower ?? 0;
+    const max = this.widgetProperties?.config?.displayScale?.upper ?? 100;
+    const percent = Math.max(0, Math.min(1, (this.value - min) / (max - min)));
+    if (percent === 0) return '';
+    if (this.isHorizontal) {
+      const { barSlant, barX0, barX1, barY, barHeight } = this.barProps;
+      const fillLen = (barX1 - barX0) * percent;
+      const cursorWidth = 4;
+      if (!this.mirror) {
+        const x0 = barX0 + fillLen - cursorWidth / 2;
+        const y0 = barY;
+        const x1 = barX0 + fillLen + cursorWidth / 2;
+        const y1 = barY;
+        const x2 = barX0 + fillLen + cursorWidth / 2 - barSlant;
+        const y2 = barY + barHeight;
+        const x3 = barX0 + fillLen - cursorWidth / 2 - barSlant;
+        const y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      } else {
+        const x0 = barX1 - fillLen + cursorWidth / 2;
+        const y0 = barY;
+        const x1 = barX1 - fillLen - cursorWidth / 2;
+        const y1 = barY;
+        const x2 = barX1 - fillLen - cursorWidth / 2 + barSlant;
+        const y2 = barY + barHeight;
+        const x3 = barX1 - fillLen + cursorWidth / 2 + barSlant;
+        const y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      }
+    } else {
+      // Vertical: always fill bottom to top, but parallelogram shape is mirrored if mirror is true
+      const { barSlant, barY0, barY1, barX, barWidth } = this.barProps;
+      const cursorHeight = 4;
+      if (!this.mirror) {
+        // Bottom edge (background parallelogram)
+        const bx0 = barX - barSlant, by0 = barY1;
+        const bx1 = barX + barWidth - barSlant, by1 = barY1;
+        // Top edge (background parallelogram)
+        const tx0 = barX, ty0 = barY0;
+        const tx1 = barX + barWidth, ty1 = barY0;
+        // Interpolate fill front (top) between bottom and top
+        const fy0 = by0 - (by0 - ty0) * percent;
+        const fy1 = by1 - (by1 - ty1) * percent;
+        const fx0 = bx0 + (tx0 - bx0) * percent;
+        const fx1 = bx1 + (tx1 - bx1) * percent;
+        // Cursor parallelogram at fill front
+        const cy0 = fy0;
+        const cy1 = fy1;
+        const cy2 = fy1 + cursorHeight;
+        const cy3 = fy0 + cursorHeight;
+        return `${fx0},${cy0} ${fx1},${cy1} ${fx1},${cy2} ${fx0},${cy3}`;
+      } else {
+        // Mirrored parallelogram, but fill still bottom to top
+        const bx0 = barX + barWidth + barSlant, by0 = barY1;
+        const bx1 = barX + barSlant, by1 = barY1;
+        const tx0 = barX + barWidth, ty0 = barY0;
+        const tx1 = barX, ty1 = barY0;
+        // Interpolate fill front (top) between bottom and top
+        const fy0 = by0 - (by0 - ty0) * percent;
+        const fy1 = by1 - (by1 - ty1) * percent;
+        const fx0 = bx0 + (tx0 - bx0) * percent;
+        const fx1 = bx1 + (tx1 - bx1) * percent;
+        // Cursor parallelogram at fill front
+        const cy0 = fy0;
+        const cy1 = fy1;
+        const cy2 = fy1 + cursorHeight;
+        const cy3 = fy0 + cursorHeight;
+        return `${fx0},${cy0} ${fx1},${cy1} ${fx1},${cy2} ${fx0},${cy3}`;
+      }
+    }
+  }
+
+  get shadowPoints(): string {
+    const min = this.widgetProperties?.config?.displayScale?.lower ?? 0;
+    const max = this.widgetProperties?.config?.displayScale?.upper ?? 100;
+    const percent = Math.max(0, Math.min(1, (this.value - min) / (max - min)));
+    if (percent === 0) return '';
+    if (this.isHorizontal) {
+      const { barSlant, barX0, barX1, barY, barHeight } = this.barProps;
+      const fillLen = (barX1 - barX0) * percent;
+      const shadowLen = Math.max(8, 40 * this.shadowStrength);
+      if (!this.mirror) {
+        const start = barX0 + fillLen;
+        const end = Math.max(barX0, start - shadowLen);
+        const x0 = end, y0 = barY;
+        const x1 = start, y1 = barY;
+        const x2 = start - barSlant, y2 = barY + barHeight;
+        const x3 = end - barSlant, y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      } else {
+        const start = barX1 - fillLen;
+        const end = Math.min(barX1, start + shadowLen);
+        const x0 = end, y0 = barY;
+        const x1 = start, y1 = barY;
+        const x2 = start + barSlant, y2 = barY + barHeight;
+        const x3 = end + barSlant, y3 = barY + barHeight;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      }
+    } else {
+      // Vertical
+      const { barSlant, barMargin, barY0, barY1, barX, barWidth } = this.barProps;
+      const fillLen = (barY1 - barY0) * percent;
+      const shadowLen = Math.max(8, 40 * this.shadowStrength);
+      if (!this.mirror) {
+        const start = barY1 - fillLen;
+        const end = Math.max(barY0, start - shadowLen);
+        const y0 = end, x0 = barX;
+        const y1 = start, x1 = barX;
+        const y2 = start - barSlant, x2 = barX - barSlant;
+        const y3 = end - barSlant, x3 = barX - barSlant;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      } else {
+        const start = barY0 + fillLen;
+        const end = Math.min(barY1, start + shadowLen);
+        const y0 = end, x0 = barX + barWidth;
+        const y1 = start, x1 = barX + barWidth;
+        const y2 = start + barSlant, x2 = barX + barWidth + barSlant;
+        const y3 = end + barSlant, x3 = barX + barWidth + barSlant;
+        return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
+      }
+    }
+  }
+
+  public mirror: boolean = false; // set to true to enable mirroring
+
+  get units(): string {
+    return this.widgetProperties?.config?.paths?.['gaugePath']?.convertUnitTo || '';
+  }
+
+  get valueLabelX(): number {
+    if (this.isHorizontal) {
+      // Compute the midpoint between the two bottom corners of the filled progress parallelogram
+      const { barSlant, barX0, barX1, barY, barHeight } = this.barProps;
+      const min = this.widgetProperties?.config?.displayScale?.lower ?? 0;
+      const max = this.widgetProperties?.config?.displayScale?.upper ?? 100;
+      const percent = Math.max(0, Math.min(1, (this.value - min) / (max - min)));
+      const fillLen = (barX1 - barX0) * percent;
+      if (!this.mirror) {
+        // Not mirrored
+        const x0 = barX0 - barSlant;
+        const x1 = (fillLen < barSlant)
+          ? barX0 - barSlant + fillLen
+          : barX0 + fillLen - barSlant;
+        return (x0 + x1) / 2;
+      } else {
+        // Mirrored
+        const x0 = barX1 + barSlant;
+        const x1 = (fillLen < barSlant)
+          ? barX1 + barSlant - fillLen
+          : barX1 - fillLen + barSlant;
+        return (x0 + x1) / 2;
+      }
+    } else {
+      // Existing vertical logic
+      const { barSlant, barY0, barY1, barX, barWidth } = this.barProps;
+      const min = this.widgetProperties?.config?.displayScale?.lower ?? 0;
+      const max = this.widgetProperties?.config?.displayScale?.upper ?? 100;
+      const percent = Math.max(0, Math.min(1, (this.value - min) / (max - min)));
+      if (!this.mirror) {
+        const bx0 = barX - barSlant, by0 = barY1;
+        const bx1 = barX + barWidth - barSlant, by1 = barY1;
+        const tx0 = barX, ty0 = barY0;
+        const tx1 = barX + barWidth, ty1 = barY0;
+        let x0 = bx0, x1 = bx1, y0 = by0;
+        if (percent === 1) { x0 = tx0; x1 = tx1; y0 = ty0; }
+        return (x0 + x1) / 2;
+      } else {
+        const bx0 = barX + barWidth + barSlant, by0 = barY1;
+        const bx1 = barX + barSlant, by1 = barY1;
+        const tx0 = barX + barWidth, ty0 = barY0;
+        const tx1 = barX, ty1 = barY0;
+        let x0 = bx0, x1 = bx1, y0 = by0;
+        if (percent === 1) { x0 = tx0; x1 = tx1; y0 = ty0; }
+        return (x0 + x1) / 2;
+      }
+    }
+  }
+
+  get valueLabelY(): number {
+    if (this.isHorizontal) {
+      // Place label just below the bottom edge of the filled progress parallelogram
+      const { barY, barHeight } = this.barProps;
+      return barY + barHeight + 18;
+    } else {
+      // Existing vertical logic
+      const { barSlant, barY0, barY1, barX, barWidth } = this.barProps;
+      const min = this.widgetProperties?.config?.displayScale?.lower ?? 0;
+      const max = this.widgetProperties?.config?.displayScale?.upper ?? 100;
+      const percent = Math.max(0, Math.min(1, (this.value - min) / (max - min)));
+      if (!this.mirror) {
+        const by0 = barY1, ty0 = barY0;
+        let y0 = by0;
+        if (percent === 1) y0 = ty0;
+        return y0 + 18;
+      } else {
+        const by0 = barY1, ty0 = barY0;
+        let y0 = by0;
+        if (percent === 1) y0 = ty0;
+        return y0 + 18;
+      }
+    }
+  }
 
   constructor() {
     super();
@@ -68,10 +412,11 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
       },
       gauge: {
         type: 'ngLinear',
-        subType: 'vertical',    // vertical or horizontal
+        subType: 'horizontal',
         enableTicks: false,
         highlightsWidth: 5,
         useNeedle: false,
+        mirror: false
       },
       numInt: 1,
       numDecimal: 0,
@@ -90,11 +435,45 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
 
   ngOnInit() {
     this.validateConfig();
+    if (this.widgetProperties?.config?.gauge?.mirror !== undefined) {
+      this.mirror = this.widgetProperties.config.gauge.mirror;
+    }
+    if (this.simulate) {
+      this.startSimulation();
+    } else {
+      this.observeDataStream('gaugePath', newValue => {
+        if (!newValue || !newValue.data) {
+          newValue = {
+            data: {
+              value: 0,
+              timestamp: new Date(),
+            },
+            state: States.Normal
+          };
+        }
+        const now = Date.now();
+        const newVal = Math.min(Math.max(newValue.data.value, this.widgetProperties.config.displayScale.lower), this.widgetProperties.config.displayScale.upper);
+        // Calculate speed
+        const deltaValue = Math.abs(newVal - this.lastValue);
+        const deltaTime = (now - this.lastTimestamp) / 1000; // seconds
+        let speed = deltaTime > 0 ? deltaValue / deltaTime : 0;
+        // Normalize speed to [0.2, 1.0] for shadow strength
+        speed = Math.min(1, Math.max(0.2, speed * 2));
+        this.shadowStrength = speed;
+        this.lastValue = newVal;
+        this.lastTimestamp = now;
+        this.value = newVal;
+      });
+      if (!this.widgetProperties.config.ignoreZones) {
+        this.observeMetaStream();
+        this.metaSub = this.zones$.subscribe();
+      }
+    }
   }
 
   protected startWidget(): void {
     this.setGaugeConfig();
-    this.ngGauge.update(this.gaugeOptions);
+    //this.ngGauge.update(this.gaugeOptions);
 
     this.unsubscribeDataStream();
     this.unsubscribeMetaStream();
@@ -172,7 +551,7 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
               }
           }
         }
-        this.ngGauge.update(option);
+        //this.ngGauge.update(option);
       }
     });
     if (!this.widgetProperties.config.ignoreZones) {
@@ -187,11 +566,13 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
 
   protected updateConfig(config: IWidgetSvcConfig): void {
     this.widgetProperties.config = config;
-    this.startWidget();
+    if (config?.gauge?.mirror !== undefined) {
+      this.mirror = config.gauge.mirror;
+    }
+    this.ngOnInit();
   }
 
   ngAfterViewInit() {
-    this.setCanvasHight
     this.startWidget();
   }
 
@@ -224,16 +605,7 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
     resize.height -= 10; // Adjust height to account for margin-top
 
     // Apply the calculated dimensions to the canvas
-    this.ngGauge.update(resize);
-  }
-
-  private setCanvasHight(): void {
-    const gaugeSize = this.gauge.nativeElement.getBoundingClientRect();
-    const resize: RadialGaugeOptions = {};
-    resize.height = gaugeSize.height;
-    resize.width = gaugeSize.width;
-
-    this.ngGauge.update(resize);
+    //this.ngGauge.update(resize);
   }
 
   private setGaugeConfig() {
@@ -246,18 +618,9 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
       majorTicks: []
     };
 
-    const rect = this.gauge.nativeElement.getBoundingClientRect();
+    //const rect = this.gauge.nativeElement.getBoundingClientRect();
     let height: number = null;
     let width: number = null;
-
-    if (this.widgetProperties.config.gauge.subType === 'vertical') {
-      height = rect.height;
-      width = rect.height * 0.3;
-    }
-    else {
-      height = rect.width * 0.3;
-      width = rect.width;
-    }
 
     if (isTicks) {
       scale = adjustLinearScaleAndMajorTicks(this.widgetProperties.config.displayScale.lower, this.widgetProperties.config.displayScale.upper);
@@ -493,14 +856,46 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
     highlights.highlightsWidth = this.widgetProperties.config.gauge.highlightsWidth;
     //@ts-ignore - bug in highlights property definition
     highlights.highlights = JSON.stringify(gaugeZonesHighlight, null, 1);
-    this.ngGauge.update(highlights);
+    //this.ngGauge.update(highlights);
   }
 
   ngOnDestroy() {
+    if (this.simInterval) {
+      clearTimeout(this.simInterval);
+    }
     this.destroyDataStreams();
     this.metaSub?.unsubscribe();
-    // Clear references to DOM elements
-    this.ngGauge = null;
-    this.gauge = null;
+  }
+
+  startSimulation() {
+    const minV = 0.5;
+    const maxV = 14.8;
+    const smallStep = 0.01 + Math.random() * 0.04; // 0.01-0.05V
+    const bigStep = 0.1 + Math.random() * 2; // 0.1-0.3V
+    let nextValue = this.value;
+    // 90% chance small step, 10% chance big step
+    if (Math.random() < 0.9) {
+      nextValue += (Math.random() < 0.5 ? -1 : 1) * smallStep;
+    } else {
+      nextValue += (Math.random() < 0.5 ? -1 : 1) * bigStep;
+    }
+    // Clamp
+    nextValue = Math.max(minV, Math.min(maxV, nextValue));
+    // Simulate a rare "jump" (e.g., alternator on/off)
+    if (Math.random() < 0.01) {
+      nextValue = minV + Math.random() * (maxV - minV);
+    }
+    // Update value and shadow
+    const now = Date.now();
+    const deltaValue = Math.abs(nextValue - this.lastValue);
+    const deltaTime = (now - this.lastTimestamp) / 1000;
+    let speed = deltaTime > 0 ? deltaValue / deltaTime : 0;
+    speed = Math.min(1, Math.max(0.2, speed * 2));
+    this.shadowStrength = speed;
+    this.lastValue = nextValue;
+    this.lastTimestamp = now;
+    this.value = nextValue;
+    // Next update in 60-180ms
+    this.simInterval = setTimeout(() => this.startSimulation(), 60 + Math.random() * 120);
   }
 }

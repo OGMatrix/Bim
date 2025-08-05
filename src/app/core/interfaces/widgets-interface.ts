@@ -132,6 +132,8 @@ export interface IWidgetSvcConfig {
     digitalMeter?: boolean;
     /** Optional. Width of gauge highlights */
     highlightsWidth?: number;
+    /** Optional. Mirror the gauge direction */
+    mirror?: boolean;
   }
   /** Used by numeric data Widget: Display minimum registered value since started */
   showMin?: boolean;

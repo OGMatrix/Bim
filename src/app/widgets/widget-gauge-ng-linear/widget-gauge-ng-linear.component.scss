@@ -1,16 +1,111 @@
-::ng-deep linear-gauge {
-display: block;
-position: relative;
-width: 100%;
-height: 100%;
-  > canvas {
-    display: block;
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin-top: 5px;
-  }
+.custom-linear-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.gauge-svg-container {
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 205 / 20;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.gauge-svg-container.vertical {
+  aspect-ratio: 1 / 4.5;
+  max-width: 120px;
+  max-height: 400px;
+}
+
+.svg-ng-linear-gauge {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.gauge-bg {
+  fill: rgb(30, 30, 36);
+  stroke: #364049;
+  stroke-width: 1.2;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.10));
+}
+.gauge-progress {
+  fill: #e5e7eb;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+  transition: fill 0.3s;
+}
+
+.gauge-value-container {
+  width: 90%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.05rem;
+}
+
+.gauge-value {
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 22px;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px #000, 0 2px 6px rgba(0,0,0,0.18);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.gauge-cursor {
+  fill: #585757;
+  transition: fill 0.2s, filter 0.2s;
+}
+
+.gauge-cursor-shadow {
+  pointer-events: none;
+  opacity: 0.8;
+  filter: drop-shadow(0 4px 8px #ff5a5a88);
+  transition: opacity 0.2s;
+}
+
+.gauge-value-container.mirrored {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.gauge-value-container.vertical {
+  justify-content: center;
+  text-align: center;
+  margin-top: 2.2rem;
+}
+
+.gauge-value-container.vertical .gauge-value {
+  font-size: 18px;
+}
+
+.gauge-cursor-rect {
+  fill: #ff5a5a;
+  stroke: #fff;
+  stroke-width: 1.2;
+  filter: drop-shadow(0 2px 6px #ff5a5a88);
+  transition: fill 0.2s, filter 0.2s;
+}
+
+.gauge-value-container.vertical-abs {
+  display: none;
+}
+
+.gauge-value-svg {
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 18px;
+  fill: #fff;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px #000, 0 2px 6px rgba(0,0,0,0.18);
+  line-height: 1;
+  dominant-baseline: baseline;
 }

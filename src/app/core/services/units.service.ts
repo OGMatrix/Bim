@@ -5,10 +5,10 @@ import Qty from 'js-quantities';
 import { AppSettingsService } from './app-settings.service';
 import { Subscription } from 'rxjs';
 
-export type TValidSkUnits = 's' | 'Hz' | 'm3' | 'm3/s' | 'kg/s' | 'kg/m3' | 'deg' | 'rad' | 'rad/s' | 'A' | 'C' | 'V' | 'W' | 'Nm' | 'J' | 'ohm' | 'm' | 'm/s' | 'm2' | 'K' | 'Pa' | 'kg' | 'ratio' | 'm/s2' | 'rad/s2' | 'N' | 'T' | 'Lux' | 'Pa/s' | 'Pa.s' | 'unitless' | null;
+export type TValidSkUnits = 's' | 'Hz' | 'm3' | 'm3/s' | 'kg/s' | 'kg/m3' | '°' | 'rad' | 'rad/s' | 'A' | 'C' | 'V' | 'W' | 'Nm' | 'J' | 'ohm' | 'm' | 'm/s' | 'm2' | 'K' | 'Pa' | 'kg' | 'ratio' | 'm/s2' | 'rad/s2' | 'N' | 'T' | 'Lux' | 'Pa/s' | 'Pa.s' | 'unitless' | null;
 
 /**
- * Interface for a list of possible Kip value type conversions for a given path.
+ * Interface for a list of possible Bim value type conversions for a given path.
  *
  * @export
  * @interface IConversionPathList
@@ -18,7 +18,7 @@ export interface IConversionPathList {
   conversions: IUnitGroup[];
 }
 /**
- *  Group of Kip units array
+ *  Group of Bim units array
  */
 export interface IUnitGroup {
   group: string;
@@ -26,7 +26,7 @@ export interface IUnitGroup {
 }
 
 /**
- * Individual Kip units system measures definition
+ * Individual Bim units system measures definition
  */
 export interface IUnit {
   measure: string;
@@ -68,7 +68,7 @@ export class UnitsService implements OnDestroy {
   private _defaultUnitsSub: Subscription;
 
   /**
-   * Definition of available Kip units to be used for conversion.
+   * Definition of available Bim units to be used for conversion.
    * Measure property has to match one Unit Conversion Function for proper operation.
    * Description is human readable property.
    */
@@ -79,7 +79,7 @@ export class UnitsService implements OnDestroy {
     ] },
     { group: 'Speed', units: [
       { measure: 'knots', description: "Knots - Nautical miles per hour"},
-      { measure: 'kph', description: "kph - Kilometers per hour"},
+      { measure: 'km/h', description: "km/h - Kilometers per hour"},
       { measure: 'mph', description: "mph - Miles per hour"},
       { measure: 'm/s', description: "m/s - Meters per second (base)"}
     ] },
@@ -106,7 +106,7 @@ export class UnitsService implements OnDestroy {
     ] },
     { group: 'Temperature', units: [
       { measure: 'K', description: "Kelvin (base)"},
-      { measure: 'celsius', description: "Celsius"},
+      { measure: '°C', description: "Celsius"},
       { measure: 'fahrenheit', description: "Fahrenheit"}
      ] },
     { group: 'Length', units: [
@@ -173,11 +173,11 @@ export class UnitsService implements OnDestroy {
     ] },
     { group: 'Angle', units: [
       { measure: 'rad', description: "Radians (base)" },
-      { measure: 'deg', description: "Degrees" },
+      { measure: '°', description: "Degrees" },
       { measure: 'grad', description: "Gradians" },
     ] },
     { group: 'Frequency', units: [
-      { measure: 'rpm', description: "RPM - Rotations per minute" },
+      { measure: 'RPM', description: "RPM - Rotations per minute" },
       { measure: 'Hz', description: "Hz - Hertz (base)" },
       { measure: 'KHz', description: "KHz - Kilohertz" },
       { measure: 'MHz', description: "MHz - Megahertz" },
@@ -185,7 +185,7 @@ export class UnitsService implements OnDestroy {
     ] },
     { group: 'Ratio', units: [
       { measure: 'percent', description: "As percentage value" },
-      { measure: 'percentraw', description: "As ratio 0-1 with % sign" },
+      { measure: '%', description: "As ratio 0-1 with % sign" },
       { measure: 'ratio', description: "Ratio 0-1 (base)" }
     ] },
     { group: 'Position', units: [
@@ -240,7 +240,7 @@ export class UnitsService implements OnDestroy {
           description: "Density in kg per cubic meter"
         }
       },
-      { unit: "deg", properties: {
+      { unit: "°", properties: {
           display: "\u00b0",
           quantity: "Angle",
           quantityDisplay: "\u2220",
@@ -425,7 +425,7 @@ export class UnitsService implements OnDestroy {
     ' ': function(v) { return v; },
 //  speed
     'knots': Qty.swiftConverter("m/s", "kn"),
-    'kph': Qty.swiftConverter("m/s", "kph"),
+    'km/h': Qty.swiftConverter("m/s", "km/h"),
     'm/s': function(v) { return v; },
     'mph': Qty.swiftConverter("m/s", "mph"),
 // volume
@@ -452,7 +452,7 @@ export class UnitsService implements OnDestroy {
     'km/kWh': Qty.swiftConverter('m/J', 'km/kWh'),
 //  temp
     "K": function(v) { return v; },
-    "celsius": Qty.swiftConverter("tempK", "tempC"),
+    "°C": Qty.swiftConverter("tempK", "tempC"),
     "fahrenheit": Qty.swiftConverter("tempK", "tempF"),
 //  length
     "m": function(v) { return v; },
@@ -517,18 +517,18 @@ export class UnitsService implements OnDestroy {
     "deg/s": Qty.swiftConverter('rad/s', 'deg/s'),
     "deg/min": Qty.swiftConverter('rad/s', 'deg/min'),
 //  frequency
-    "rpm": function(v) { return v*60; },
+    "RPM": function(v) { return v*60; },
     "Hz": function(v) { return v; },
     "KHz": function(v) { return v/1000; },
     "MHz": function(v) { return v/1000000; },
     "GHz": function(v) { return v/1000000000; },
 //  angle
     "rad": function(v) { return v; },
-    "deg": Qty.swiftConverter('rad', 'deg'),
+    "°": Qty.swiftConverter('rad', 'deg'),
     "grad": Qty.swiftConverter('rad', 'grad'),
 //   ratio
     'percent': function(v) { return v * 100 },
-    'percentraw': function(v) { return v },
+    '%': function(v) { return v },
     'ratio': function(v) { return v },
 // lat/lon
     'latitudeMin': function(v) {

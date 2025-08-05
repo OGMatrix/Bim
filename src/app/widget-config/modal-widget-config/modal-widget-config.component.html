@@ -14,7 +14,6 @@
           [showDatasetMaximumValueLine]="showDatasetMaximumValueLineToControl"
           [showDatasetAverageValueLine]="showDatasetAverageValueLineToControl"
           [showDatasetAngleAverageValueLine]="showDatasetAngleAverageValueLineToControl"
-
           [startScaleAtZero]="startScaleAtZeroToControl"
           [showLabel]="showLabelToControl"
           [showTimeScale]="showTimeScaleToControl"
@@ -205,6 +204,13 @@
                 <mat-checkbox name="useNeedle"
                   formControlName="useNeedle">
                     Use needle indicator
+                </mat-checkbox>
+              </div>
+
+              <div formGroupName="gauge">
+                <mat-checkbox name="mirror"
+                  formControlName="mirror">
+                    Mirror Gauge
                 </mat-checkbox>
               </div>
 

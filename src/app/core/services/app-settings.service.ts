@@ -41,7 +41,7 @@ export class AppSettingsService {
   private sharedConfigName: string;
   private activeConfig: IConfig = {app: null, theme: null, dashboards: null};
 
-  private kipUUID: string;
+  private bimUUID: string;
   public signalkUrl: ISignalKUrl;
   private widgets: Array<IWidget>;
   private _dashboards: Dashboard[] = [];
@@ -107,7 +107,7 @@ export class AppSettingsService {
     this.loginPassword = config.loginPassword;
     this.useSharedConfig = config.useSharedConfig;
     this.sharedConfigName = config.sharedConfigName;
-    this.kipUUID = config.kipUUID;
+    this.bimUUID = config.bimUUID;
   }
 
   public resetConnection() {
@@ -272,8 +272,8 @@ export class AppSettingsService {
     return this.buildThemeStorageObject();
   }
 
-  public get KipUUID(): string {
-    return this.kipUUID;
+  public get BimUUID(): string {
+    return this.bimUUID;
   }
 
   // Themes
@@ -477,7 +477,7 @@ export class AppSettingsService {
   private buildConnectionStorageObject() {
     let storageObject: IConnectionConfig = {
       configVersion: configVersion,
-      kipUUID: this.kipUUID,
+      bimUUID: this.bimUUID,
       signalKUrl: this.signalkUrl.url,
       proxyEnabled: this.proxyEnabled,
       signalKSubscribeAll: this.signalKSubscribeAll,
@@ -534,7 +534,7 @@ export class AppSettingsService {
 
   private getDefaultConnectionConfig(): IConnectionConfig {
     let config: IConnectionConfig = DefaultConnectionConfig;
-    config.kipUUID = UUID.create();
+    config.bimUUID = UUID.create();
     config.signalKUrl = window.location.origin;
     localStorage.setItem('connectionConfig', JSON.stringify(config));
     return config;
