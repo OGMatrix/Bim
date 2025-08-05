@@ -1,6 +1,6 @@
 {
-  "name": "signalk-bim",
-  "version": "0.1.0",
+  "name": "signalk-bimv2",
+  "version": "0.1.2",
   "description": "BIM is an fork of Kip, an advanced and versatile marine instrumentation package to display Signal K data, but with own features and improvements.",
   "license": "MIT",
   "author": {
@@ -41,7 +41,7 @@
     "displayName": "BIM Instrument MFD"
   },
   "scripts": {
-    "dev": "ng serve --configuration=dev --serve-path=/bim-signalk/",
+    "dev": "ng serve --configuration=dev --serve-path=/signalk-bimv2/",
     "build-dev": "ng build --configuration=dev",
     "build-prod": "ng build --configuration=production",
     "test": "ng test",

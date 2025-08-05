@@ -11,7 +11,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "baseHref": "/bim-signalk/",
+            "baseHref": "/signalk-bimv2/",
             "aot": true,
             "outputPath": {
               "base": "public",
