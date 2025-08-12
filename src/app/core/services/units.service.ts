@@ -528,7 +528,7 @@ export class UnitsService implements OnDestroy {
     "grad": Qty.swiftConverter('rad', 'grad'),
 //   ratio
     'percent': function(v) { return v * 100 },
-    '%': function(v) { return v },
+    '%': function(v) { return v * 100 },
     'ratio': function(v) { return v },
 // lat/lon
     'latitudeMin': function(v) {

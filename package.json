@@ -1,6 +1,6 @@
 {
   "name": "signalk-bimv2",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "BIM is an fork of Kip, an advanced and versatile marine instrumentation package to display Signal K data, but with own features and improvements.",
   "license": "MIT",
   "author": {

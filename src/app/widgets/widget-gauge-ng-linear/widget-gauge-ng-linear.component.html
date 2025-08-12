@@ -40,7 +40,9 @@
           [attr.text-anchor]="isHorizontal ? (mirror ? 'end' : 'start') : 'middle'"
           alignment-baseline="baseline"
           class="gauge-value-svg"
-        >{{ value | number: '1.1-2' }} {{ units }}</text>
+        >
+          {{ value | number: valueLabelFormat }} {{ units }}
+        </text>
       </svg>
     </div>
   </div>

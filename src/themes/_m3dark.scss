@@ -136,7 +136,7 @@ $primary-palette: map.merge(map.get($_palettes, primary), $_rest);
 $tertiary-palette: map.merge(map.get($_palettes, tertiary), $_rest);
 
 $_widget-card-background-color: map.get(map.get($_palettes, primary), 0);
-$_background: map.get(map.get($_palettes, neutral), 10);
+$_background: map.get(map.get($_palettes, neutral), 0);
 
 $kip-dark-color: (
   blue: #3298ff, blue-dim: #359affc6, blue-dimmer: #063b7178,

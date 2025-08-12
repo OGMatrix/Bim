@@ -35,7 +35,7 @@ export class WidgetGaugeNgRadialComponent extends BaseWidgetComponent implements
   // Gauge text value for value box rendering
   public textValue: string = "--";
   // Gauge value
-  public value: number = 30;
+  public value: number = 0;
 
   // Gauge options
   public gaugeOptions = {} as RadialGaugeOptions;

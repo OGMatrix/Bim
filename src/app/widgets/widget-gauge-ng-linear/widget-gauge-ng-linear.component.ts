@@ -30,8 +30,8 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
   // Gauge text value for value box rendering
   public textValue: string = "--";
   // Gauge value
-  public value: number = 20;
-  private lastValue: number = 20;
+  public value: number = 0;
+  private lastValue: number = 0;
   private lastTimestamp: number = Date.now();
   public shadowStrength: number = 0.2; // 0.2 to 1.0
   public simulate: boolean = false; // set to true to enable simulation
@@ -304,6 +304,13 @@ export class WidgetGaugeNgLinearComponent extends BaseWidgetComponent implements
         return `${x0},${y0} ${x1},${y1} ${x2},${y2} ${x3},${y3}`;
       }
     }
+  }
+
+  get valueLabelFormat(): string {
+    // Returns a format string like '1.0-2' for Angular number pipe
+    const int = this.widgetProperties?.config?.numInt ?? 1;
+    const dec = this.widgetProperties?.config?.numDecimal ?? 0;
+    return `${int}.${dec}-${dec}`;
   }
 
   public mirror: boolean = false; // set to true to enable mirroring

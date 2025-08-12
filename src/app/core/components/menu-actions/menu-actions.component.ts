@@ -100,6 +100,9 @@ export class MenuActionsComponent implements AfterViewInit, OnDestroy {
         this.app.isNightMode.set(!this.app.isNightMode());
         this.app.toggleDayNightMode();
         break;
+      case 'shutdown':
+        break;
+        break;
       default:
         break;
     }
