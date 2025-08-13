@@ -160,6 +160,14 @@ export class WidgetService {
       componentClassName: 'WidgetRaceTimerComponent',
     },
     {
+      name: 'Trim Mode',
+      description: 'Switch between boat trim modes: Normal (n), Tube (t), and Wake (w). Sends string to Signal K.',
+      icon: 'switchpanelWidget',
+      category: 'Basic',
+      selector: 'widget-trimmode',
+      componentClassName: 'WidgetTrimmodeComponent'
+    },
+    {
       name: 'Embed Webpage Viewer',
       description: 'Use this widget to embed a view of an external web based applications, such as Grafana graphs, other Signal K Apps and related tools, in your dashboard for a seamless integration. Interactions with the embedded page are not supported.',
       icon: 'embedWidget',

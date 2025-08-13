@@ -33,6 +33,7 @@ import { WidgetTutorialComponent } from '../../../widgets/widget-tutorial/widget
 import { WidgetWindComponent } from '../../../widgets/widget-wind/widget-wind.component';
 import { WidgetLabelComponent } from '../../../widgets/widget-label/widget-label.component';
 import { WidgetSliderComponent } from '../../../widgets/widget-slider/widget-slider.component';
+import { WidgetTrimmodeComponent } from '../../../widgets/widget-trimmode/widget-trimmode.component';
 
 
 @Component({
@@ -82,7 +83,8 @@ export class DashboardComponent implements AfterViewInit, OnDestroy{
       WidgetWindComponent,
       WidgetPositionComponent,
       WidgetLabelComponent,
-      WidgetSliderComponent
+      WidgetSliderComponent,
+      WidgetTrimmodeComponent
     ]);
 
     effect(() => {

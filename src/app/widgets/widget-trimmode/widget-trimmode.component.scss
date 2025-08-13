@@ -1,0 +1,106 @@
+.trimmode-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px;
+  overflow: hidden;
+  z-index: 21;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  z-index: 20;
+}
+
+:host {
+  /* Subtle, modern, less glossy */
+  --btn-bg: #1f2125;
+  --btn-bg-active: #23242a;
+  --btn-border: rgba(255,255,255,0.06);
+  --btn-shadow-1: rgba(0,0,0,0.35);
+  --btn-shadow-2: rgba(0,0,0,0.2);
+  --track-bg: rgba(255,255,255,0.12);
+  --accent-color: var(--accent-color, #ff5252);
+  --label-color: var(--label-color, #c7c7c7);
+}
+
+.mode-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 84px;
+  min-height: 72px;
+  border-radius: 14px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  box-shadow:
+    0 4px 10px -6px var(--btn-shadow-1),
+    0 1px 0 0 var(--btn-shadow-2) inset;
+  transition: transform 60ms ease, box-shadow 160ms ease, background 160ms ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mode-btn:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.25);
+  outline-offset: 2px;
+}
+
+.mode-btn:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 3px 8px -6px var(--btn-shadow-1),
+    0 0 0 1px var(--btn-border) inset;
+}
+
+/* Show press on mouse/touch down as well (for better visibility) */
+.mode-btn:where(:hover, :focus-visible) {
+  background: var(--btn-bg-active);
+}
+
+.mode-btn.active {
+  background: var(--btn-bg-active);
+  box-shadow:
+    0 6px 14px -6px var(--btn-shadow-1),
+    0 0 0 1px var(--btn-border) inset;
+}
+
+.mode-btn .status-bar {
+  position: absolute;
+  top: 8px;
+  left: 10%;
+  right: 10%;
+  height: 10px;
+  border-radius: 6px;
+  background: var(--track-bg);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset;
+  overflow: hidden;
+}
+
+.mode-btn .status-bar.on {
+  background: linear-gradient(90deg, color-mix(in oklab, var(--accent-color), #000 10%), var(--accent-color));
+}
+
+.mode-btn .label {
+  color: var(--label-color);
+  font-size: clamp(11px, 2.2vw, 16px);
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  padding-top: 18px;
+}
+
+

@@ -1,0 +1,52 @@
+<widget-host
+  class="trimmode-container"
+  (onResize)="onResized($event)"
+  [style.--accent-color]="accentColor"
+  [style.--label-color]="labelColor"
+  [(config)]="widgetProperties.config" [id]="widgetProperties.uuid" (configChange)="updateConfig($event)"
+>
+  <widget-title [text]="widgetProperties.config.displayName" [color]="labelColor" />
+  <div class="buttons">
+    <div
+      class="mode-btn"
+      tabindex="0"
+      [class.active]="activeMode() === 'n'"
+      (click)="$event.stopPropagation(); selectMode('n')"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+      (keydown.enter)="selectMode('n')"
+      (keydown.space)="selectMode('n')"
+    >
+      <div class="status-bar" [class.on]="activeMode() === 'n'"></div>
+      <div class="label">Normal</div>
+    </div>
+
+    <div
+      class="mode-btn"
+      tabindex="0"
+      [class.active]="activeMode() === 't'"
+      (click)="$event.stopPropagation(); selectMode('t')"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+      (keydown.enter)="selectMode('t')"
+      (keydown.space)="selectMode('t')"
+    >
+      <div class="status-bar" [class.on]="activeMode() === 't'"></div>
+      <div class="label">Tube</div>
+    </div>
+
+    <div
+      class="mode-btn"
+      tabindex="0"
+      [class.active]="activeMode() === 'w'"
+      (click)="$event.stopPropagation(); selectMode('w')"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+      (keydown.enter)="selectMode('w')"
+      (keydown.space)="selectMode('w')"
+    >
+      <div class="status-bar" [class.on]="activeMode() === 'w'"></div>
+      <div class="label">Wake</div>
+    </div>
+  </div>
+</widget-host>
