@@ -1,3 +1,4 @@
+  // Cache for latest values of each path
 import { AfterViewInit, Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,6 +27,8 @@ type TrimMode = 'n' | 't' | 'w' | null;
   styleUrl: './widget-trimmode.component.scss',
 })
 export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnInit, AfterViewInit, OnDestroy {
+  // Cache for latest values of each path
+  private latestPathValues: { [key: string]: number } = {};
   private signalkRequestsService = inject(SignalkRequestsService);
   private appService = inject(AppService);
 
@@ -41,13 +44,36 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
       displayName: 'Trim Mode',
       filterSelfPaths: true,
       paths: {
-        modePath: {
-          description: 'Trim mode (string)',
-          path: 'self.propulsion.trimm.mode',
+        normalPath: {
+          description: 'Trim Normal (number)',
+          path: 'electrical.switches.bank.107.trimmNormal.state',
           source: 'default',
-          pathType: 'string',
+          pathType: 'number',
           isPathConfigurable: true,
-          // String path; unit conversion not applicable
+          convertUnitTo: null,
+          showPathSkUnitsFilter: false,
+          pathSkUnitsFilter: null,
+          supportsPut: true,
+          sampleTime: 500,
+        },
+        tubePath: {
+          description: 'Trim Tube (number)',
+          path: 'electrical.switches.bank.107.trimmTube.state',
+          source: 'default',
+          pathType: 'number',
+          isPathConfigurable: true,
+          convertUnitTo: null,
+          showPathSkUnitsFilter: false,
+          pathSkUnitsFilter: null,
+          supportsPut: true,
+          sampleTime: 500,
+        },
+        wakePath: {
+          description: 'Trim Wake (number)',
+          path: 'electrical.switches.bank.107.trimmWake.state',
+          source: 'default',
+          pathType: 'number',
+          isPathConfigurable: true,
           convertUnitTo: null,
           showPathSkUnitsFilter: false,
           pathSkUnitsFilter: null,
@@ -77,20 +103,39 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
   }
 
   protected startWidget(): void {
-    // Observe current mode path to reflect selection
+    // Observe all three trim mode paths
     this.unsubscribeDataStream();
-    this.observeDataStream('modePath', (update) => {
-      const val = update?.data?.value;
-      if (val === 'n' || val === 't' || val === 'w') {
-        this.activeMode.set(val as TrimMode);
-      } else {
-        this.activeMode.set("n");
-      }
+    this.observeDataStream('normalPath', (update) => {
+      this.latestPathValues['normalPath'] = typeof update?.data?.value === 'number' ? update.data.value : null;
+      this.updateActiveMode();
+    });
+    this.observeDataStream('tubePath', (update) => {
+      this.latestPathValues['tubePath'] = typeof update?.data?.value === 'number' ? update.data.value : null;
+      this.updateActiveMode();
+    });
+    this.observeDataStream('wakePath', (update) => {
+      this.latestPathValues['wakePath'] = typeof update?.data?.value === 'number' ? update.data.value : null;
+      this.updateActiveMode();
     });
 
     // Listen to PUT response messages
     this.skRequestSub?.unsubscribe();
     this.subscribeSKRequest();
+  }
+
+  private updateActiveMode(): void {
+    const normal = this.latestPathValues['normalPath'];
+    const tube = this.latestPathValues['tubePath'];
+    const wake = this.latestPathValues['wakePath'];
+    if (normal === 1) {
+      this.activeMode.set('n');
+    } else if (tube === 1) {
+      this.activeMode.set('t');
+    } else if (wake === 1) {
+      this.activeMode.set('w');
+    } else {
+      this.activeMode.set('n');
+    }
   }
 
   protected updateConfig(config: IWidgetSvcConfig): void {
@@ -114,12 +159,28 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
 
   private sendMode(mode: TrimMode): void {
     if (!mode) { return; }
-    const path = this.widgetProperties.config.paths['modePath'].path;
-    if (!path) {
-      this.appService.sendSnackbarNotification('Trim Mode Widget: Signal K path is not configured.', 5000, true);
-      return;
+    const paths = this.widgetProperties.config.paths;
+    const uuid = this.widgetProperties.uuid;
+    // Set selected mode to 1, others to 0
+    switch (mode) {
+      case 'n':
+        this.signalkRequestsService.putRequest(paths['normalPath'].path, 1, uuid);
+        this.signalkRequestsService.putRequest(paths['tubePath'].path, 0, uuid);
+        this.signalkRequestsService.putRequest(paths['wakePath'].path, 0, uuid);
+        break;
+      case 't':
+        this.signalkRequestsService.putRequest(paths['normalPath'].path, 0, uuid);
+        this.signalkRequestsService.putRequest(paths['tubePath'].path, 1, uuid);
+        this.signalkRequestsService.putRequest(paths['wakePath'].path, 0, uuid);
+        break;
+      case 'w':
+        this.signalkRequestsService.putRequest(paths['normalPath'].path, 0, uuid);
+        this.signalkRequestsService.putRequest(paths['tubePath'].path, 0, uuid);
+        this.signalkRequestsService.putRequest(paths['wakePath'].path, 1, uuid);
+        break;
+      default:
+        break;
     }
-    this.signalkRequestsService.putRequest(path, mode, this.widgetProperties.uuid);
   }
 
   private subscribeSKRequest(): void {

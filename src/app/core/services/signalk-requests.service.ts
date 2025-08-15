@@ -175,7 +175,7 @@ export class SignalkRequestsService {
         }
 
         if (this.requests[index].statusCode == 400) {
-          this.appService.sendSnackbarNotification(this.requests[index].message);
+          // this.appService.sendSnackbarNotification(this.requests[index].message);
           console.log("[Request Service] " + this.requests[index].message );
         }
 
