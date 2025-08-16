@@ -214,7 +214,7 @@ export class SignalkRequestsService {
         this.requests = []; // flush array to clean values that will become stale post error
       }
     } else {
-      this.appService.sendSnackbarNotification("ERROR: A request message that contains an unknown Request ID was received. Request Delta:\n" + JSON.stringify(delta));
+      // this.appService.sendSnackbarNotification("ERROR: A request message that contains an unknown Request ID was received. Request Delta:\n" + JSON.stringify(delta));
       console.error("[Request Service] A Request message that contains an unknown Request ID was received. from delta:\n" + JSON.stringify(delta))
     }
   }

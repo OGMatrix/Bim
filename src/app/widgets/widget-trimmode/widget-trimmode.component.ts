@@ -161,6 +161,10 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
     if (!mode) { return; }
     const paths = this.widgetProperties.config.paths;
     const uuid = this.widgetProperties.uuid;
+    
+    // Update UI immediately (optimistic update)
+    this.activeMode.set(mode);
+    
     // Set selected mode to 1, others to 0
     switch (mode) {
       case 'n':
@@ -186,14 +190,17 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
   private subscribeSKRequest(): void {
     this.skRequestSub = this.signalkRequestsService.subscribeRequest().subscribe((requestResult) => {
       if (requestResult.widgetUUID === this.widgetProperties.uuid) {
-        let errMsg = `Trim Mode Widget ${this.widgetProperties.config.displayName}: `;
         if (requestResult.statusCode !== 200) {
+          let errMsg = `Trim Mode Widget ${this.widgetProperties.config.displayName}: `;
           if (requestResult.message) {
             errMsg += requestResult.message;
           } else {
             errMsg += requestResult.statusCode + ' - ' + requestResult.statusCodeDescription;
           }
           this.appService.sendSnackbarNotification(errMsg, 0);
+          
+          // Revert the optimistic update by re-running updateActiveMode with the last known values
+          this.updateActiveMode();
         }
       }
     });
