@@ -42,7 +42,7 @@ export class SvgBooleanSwitchComponent implements OnInit, DoCheck {
       this.ctrlState = data.value;
       this.viewBox = data.value ? this.toggleOn : this.toggleOff;
     }
-    if(data.color != this.ctrlColor) {
+    if(data && data.color && data.color != this.ctrlColor) {
       this.ctrlColor = data.color;
       this.getColors(data.color);
     }

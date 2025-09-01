@@ -1,0 +1,259 @@
+// Enhanced SCSS for widget-boat-attitude.component.scss
+
+.widget-boat-attitude {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, 
+    rgba(15, 30, 60, 0.95) 0%, 
+    rgba(30, 60, 120, 0.85) 50%, 
+    rgba(45, 90, 150, 0.75) 100%);
+  border-radius: 15px;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  // Animated water background effect
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(0, 100, 200, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(0, 150, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(100, 200, 255, 0.05) 0%, transparent 50%);
+    animation: waterShimmer 6s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+}
+
+@keyframes waterShimmer {
+  0% { opacity: 0.3; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0.6; transform: scale(1.1) rotate(2deg); }
+}
+
+.attitude-display {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+
+/* Enhanced Roll indicator styling */
+.roll-indicator {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ffffff;
+  background: rgba(0, 20, 40, 0.8);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid rgba(100, 200, 255, 0.3);
+  backdrop-filter: blur(8px);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  .value {
+    font-size: 1.6em;
+    font-weight: 700;
+    text-shadow: 
+      0 0 10px rgba(100, 200, 255, 0.8),
+      0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 4px;
+    min-width: 60px;
+    text-align: center;
+  }
+  
+  .label {
+    font-size: 0.75em;
+    font-weight: 600;
+    opacity: 0.8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(200, 230, 255, 0.9);
+  }
+}
+
+/* Enhanced Pitch indicator styling */
+.pitch-indicator {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ffffff;
+  background: rgba(0, 20, 40, 0.8);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid rgba(100, 200, 255, 0.3);
+  backdrop-filter: blur(8px);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  .label {
+    font-size: 0.75em;
+    font-weight: 600;
+    opacity: 0.8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(200, 230, 255, 0.9);
+    margin-bottom: 4px;
+  }
+  
+  .value {
+    font-size: 1.6em;
+    font-weight: 700;
+    text-shadow: 
+      0 0 10px rgba(100, 200, 255, 0.8),
+      0 2px 4px rgba(0, 0, 0, 0.5);
+    min-width: 60px;
+    text-align: center;
+  }
+}
+
+/* Enhanced SVG styling and animation */
+svg {
+  max-width: 70%;
+  max-height: 70%;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center center;
+  z-index: 3;
+  
+  // Reference lines for attitude indication
+  line {
+    stroke: rgba(100, 150, 200, 0.4);
+    stroke-width: 1;
+    stroke-dasharray: 8, 4;
+    opacity: 0.6;
+  }
+  
+  // Enhanced boat styling
+  path {
+    transition: filter 0.5s ease-out;
+    
+    // Main hull gets dynamic lighting based on attitude
+    &:first-of-type {
+      filter: 
+        drop-shadow(0 0 5px rgba(255, 255, 255, 0.4))
+        drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    }
+    
+    // Upper deck gets subtle glow
+    &:nth-of-type(2) {
+      filter: 
+        drop-shadow(0 0 3px rgba(200, 220, 255, 0.3))
+        drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+    
+    // Bow gets accent lighting
+    &:last-of-type {
+      filter: 
+        drop-shadow(0 0 2px rgba(255, 255, 255, 0.5))
+        drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    }
+  }
+}
+
+/* Danger state indicators */
+.widget-boat-attitude {
+  &.danger-low {
+    .roll-indicator, .pitch-indicator {
+      border-color: rgba(255, 200, 100, 0.5);
+      
+      .value {
+        text-shadow: 
+          0 0 10px rgba(255, 200, 100, 0.8),
+          0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+    }
+  }
+  
+  &.danger-high {
+    .roll-indicator, .pitch-indicator {
+      border-color: rgba(255, 100, 100, 0.7);
+      background: rgba(40, 0, 0, 0.8);
+      
+      .value {
+        color: #ffcccc;
+        text-shadow: 
+          0 0 15px rgba(255, 100, 100, 1.0),
+          0 2px 4px rgba(0, 0, 0, 0.7);
+      }
+    }
+    
+    &::before {
+      animation-duration: 3s;
+    }
+  }
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 600px) {
+  .roll-indicator, .pitch-indicator {
+    padding: 8px 12px;
+    
+    .value {
+      font-size: 1.3em;
+    }
+    
+    .label {
+      font-size: 0.7em;
+    }
+  }
+  
+  svg {
+    max-width: 85%;
+    max-height: 85%;
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.3s ease-out;
+}
+
+/* Water effect overlay */
+.water-effect {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(to top,
+    rgba(0, 100, 200, 0.3) 0%,
+    rgba(0, 150, 255, 0.1) 50%,
+    transparent 100%);
+  pointer-events: none;
+  animation: gentleWave 4s ease-in-out infinite alternate;
+}
+
+@keyframes gentleWave {
+  0% { 
+    transform: translateY(2px) scaleY(0.98);
+    opacity: 0.6;
+  }
+  100% { 
+    transform: translateY(-2px) scaleY(1.02);
+    opacity: 0.8;
+  }
+}
