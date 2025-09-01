@@ -29,16 +29,23 @@ export class WidgetBoatAttitudeComponent extends BaseWidgetComponent implements 
         this.observeDataStream('roll', newValue => {
             console.log('Roll data update:', newValue);
             if (newValue?.data?.value !== undefined) {
-                this.currentRoll = newValue.data.value;
+                this.currentRoll = (newValue.data.value * Math.PI) / 180;
             }
         });
 
         // Observe pitch values
         this.observeDataStream('pitch', newValue => {
             if (newValue?.data?.value !== undefined) {
-                this.currentPitch = newValue.data.value;
+                this.currentPitch = (newValue.data.value * Math.PI) / 180;
             }
         });
+        // this.simulate();
+    }
+
+    protected simulate() {
+        this.currentRoll = Math.random() * 120 - 60; // Random roll between -60 and 60
+        this.currentPitch = Math.random() * 90 - 45; // Random pitch between -45 and 45
+        setTimeout(() => this.simulate(), 1000); // Repeat every second
     }
 
     protected updateConfig(config: IWidgetSvcConfig): void {
@@ -107,10 +114,6 @@ export class WidgetBoatAttitudeComponent extends BaseWidgetComponent implements 
         const rollAngle = roll * this.ROLL_SCALE_FACTOR;
         const pitchAngle = pitch * this.PITCH_SCALE_FACTOR;
 
-        // Center point of the boat (adjust based on your SVG dimensions)
-        const centerX = 225;
-        const centerY = 245;
-
         // Calculate realistic pitch effects
         // Positive pitch (bow up) should make the boat appear to rise at the bow
         // Negative pitch (bow down) should make the boat appear to dive at the bow
@@ -127,12 +130,14 @@ export class WidgetBoatAttitudeComponent extends BaseWidgetComponent implements 
         // Combine all transformations in the correct order
         // Order matters: translate to center, apply transformations, translate back
         const transforms = [
-            `translate(${centerX}, ${centerY})`, // Move to rotation center
-            `rotate(${rollAngle * 4})`, // Apply roll rotation
+            `rotate(${rollAngle})`, // Apply roll rotation
             `scale(${perspectiveScale}, ${pitchScale})`, // Apply pitch scaling and perspective
             `translate(0, ${pitchTranslateY + rollSinkEffect})`, // Apply pitch translation and roll sink
-            `translate(${-centerX}, ${-centerY})` // Move back from rotation center
+            // `translate(${-centerX}, ${-centerY})` // Move back from rotation center
         ].join(' ');
+
+        this.rollText = this.currentRoll ? this.currentRoll.toFixed(1) : '0';
+        this.pitchText = this.currentPitch ? this.currentPitch.toFixed(1) : '0';
 
         return transforms;
     }
@@ -155,8 +160,7 @@ export class WidgetBoatAttitudeComponent extends BaseWidgetComponent implements 
         );
 
         return {
-            'filter': `drop-shadow(0 0 ${glowIntensity}px rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, 0.6))`,
-            'transition': 'filter 0.5s ease-out'
+            'filter': `drop-shadow(0 0 ${glowIntensity}px rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, 0.6))`
         };
     }
 

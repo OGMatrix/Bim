@@ -1,0 +1,21 @@
+<widget-host
+  [(config)]="widgetProperties.config"
+  [id]="widgetProperties.uuid"
+  (configChange)="updateConfig($event)"
+>
+  <widget-title
+    [text]="widgetProperties.config.displayName"
+    [color]="labelColor"
+  />
+  <div class="buttons">
+    <div
+      class="mode-btn"
+      tabindex="0"
+      (click)="$event.stopPropagation(); handleButtonToggle()"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+    >
+      <div class="label">{{ widgetProperties.config.displayName }}</div>
+    </div>
+  </div>
+</widget-host>

@@ -1,14 +1,11 @@
 <widget-host [(config)]="widgetProperties.config" [id]="widgetProperties.uuid" (configChange)="updateConfig($event)">
     <div class="widget-boat-attitude">
         
-        <!-- Water effect background -->
-        <div class="water-effect" ></div>
-        
         <div class="attitude-display">
             <!-- Enhanced Roll indicator -->
             <div class="roll-indicator">
                 <span class="value">
-                    {{ currentRoll }}°
+                    {{ rollText }}°
                 </span>
                 <span class="label">ROLL</span>
                 <!-- Visual roll indicator bar -->
@@ -21,7 +18,7 @@
             <div class="pitch-indicator">
                 <span class="label">PITCH</span>
                 <span class="value">
-                    {{ currentPitch }}°
+                    {{ pitchText }}°
                 </span>
                 <!-- Visual pitch indicator bar -->
                 <div class="pitch-bar">
@@ -63,13 +60,7 @@
                 <circle cx="225" cy="245" r="3" fill="rgba(255, 255, 255, 0.4)" />
 
                 <!-- Enhanced boat hull with improved graphics -->
-                <g transform="translate(0,490) scale(0.1,-0.1)">
-                    <!-- Water line that responds to boat attitude -->
-                    <rect x="0" y="3400" width="4500" height="100" 
-                          fill="url(#waterGradient)" 
-                          opacity="0.4"
-                          [style.transform]="getWaterTransform()" />
-                    
+                <g transform="translate(0,490) scale(0.1,-0.1)">                    
                     <!-- Main hull shape with enhanced styling -->
                     <path
                         d="M1286 4035 c-39 -14 -90 -55 -108 -89 c-13 -25 -276 -944 -271 -949 c9 -9 116 28 121 42 c3 9 60 205 127 435 c109 382 122 421 148 440 c28 20 41 21 455 24 c235 2 441 0 458 -3 c20 -3 35 -14 42 -31 c8 -17 12 -129 12 -364 l0 -340 l30 0 l30 0 l0 348 c0 285 3 352 14 368 c14 18 32 19 455 22 c492 3 500 2 525 -60 c8 -18 67 -218 131 -444 l117 -410 l59 -16 c48 -13 59 -13 59 -3 c0 30 -259 917 -277 947 c-10 18 -38 46 -62 63 l-43 30 l-991 2 c-825 2 -999 0 -1031 -12z"
