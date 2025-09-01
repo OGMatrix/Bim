@@ -29,6 +29,8 @@ type TrimMode = 'n' | 't' | 'w' | null;
 export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnInit, AfterViewInit, OnDestroy {
   // Cache for latest values of each path
   private latestPathValues: { [key: string]: number } = {};
+  // Track last requestId for each mode
+  private lastRequestIds: { [mode in TrimMode]?: string } = {};
   private signalkRequestsService = inject(SignalkRequestsService);
   private appService = inject(AppService);
 
@@ -106,14 +108,17 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
     // Observe all three trim mode paths
     this.unsubscribeDataStream();
     this.observeDataStream('normalPath', (update) => {
+      console.log(update);
       this.latestPathValues['normalPath'] = typeof update?.data?.value === 'number' ? update.data.value : null;
       this.updateActiveMode();
     });
     this.observeDataStream('tubePath', (update) => {
+      console.log(update);
       this.latestPathValues['tubePath'] = typeof update?.data?.value === 'number' ? update.data.value : null;
       this.updateActiveMode();
     });
     this.observeDataStream('wakePath', (update) => {
+      console.log(update);
       this.latestPathValues['wakePath'] = typeof update?.data?.value === 'number' ? update.data.value : null;
       this.updateActiveMode();
     });
@@ -127,14 +132,13 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
     const normal = this.latestPathValues['normalPath'];
     const tube = this.latestPathValues['tubePath'];
     const wake = this.latestPathValues['wakePath'];
-    if (normal === 1) {
-      this.activeMode.set('n');
-    } else if (tube === 1) {
-      this.activeMode.set('t');
-    } else if (wake === 1) {
-      this.activeMode.set('w');
+    const activeCount = [normal, tube, wake].filter(v => v === 1).length;
+    if (activeCount === 1) {
+      if (normal === 1) this.activeMode.set('n');
+      else if (tube === 1) this.activeMode.set('t');
+      else if (wake === 1) this.activeMode.set('w');
     } else {
-      this.activeMode.set('n');
+      this.activeMode.set(null);
     }
   }
 
@@ -161,36 +165,47 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
     if (!mode) { return; }
     const paths = this.widgetProperties.config.paths;
     const uuid = this.widgetProperties.uuid;
-    
-    // Update UI immediately (optimistic update)
-    this.activeMode.set(mode);
-    
-    // Set selected mode to 1, others to 0
+
+    // Set selected mode to 1, others to 0, and track requestIds
+    let reqN: string | undefined, reqT: string | undefined, reqW: string | undefined;
     switch (mode) {
       case 'n':
-        this.signalkRequestsService.putRequest(paths['normalPath'].path, 1, uuid);
-        this.signalkRequestsService.putRequest(paths['tubePath'].path, 0, uuid);
-        this.signalkRequestsService.putRequest(paths['wakePath'].path, 0, uuid);
+        reqN = this.signalkRequestsService.putRequest(paths['normalPath'].path, 1, uuid);
+        reqT = this.signalkRequestsService.putRequest(paths['tubePath'].path, 0, uuid);
+        reqW = this.signalkRequestsService.putRequest(paths['wakePath'].path, 0, uuid);
         break;
       case 't':
-        this.signalkRequestsService.putRequest(paths['normalPath'].path, 0, uuid);
-        this.signalkRequestsService.putRequest(paths['tubePath'].path, 1, uuid);
-        this.signalkRequestsService.putRequest(paths['wakePath'].path, 0, uuid);
+        reqN = this.signalkRequestsService.putRequest(paths['normalPath'].path, 0, uuid);
+        reqT = this.signalkRequestsService.putRequest(paths['tubePath'].path, 1, uuid);
+        reqW = this.signalkRequestsService.putRequest(paths['wakePath'].path, 0, uuid);
         break;
       case 'w':
-        this.signalkRequestsService.putRequest(paths['normalPath'].path, 0, uuid);
-        this.signalkRequestsService.putRequest(paths['tubePath'].path, 0, uuid);
-        this.signalkRequestsService.putRequest(paths['wakePath'].path, 1, uuid);
+        reqN = this.signalkRequestsService.putRequest(paths['normalPath'].path, 0, uuid);
+        reqT = this.signalkRequestsService.putRequest(paths['tubePath'].path, 0, uuid);
+        reqW = this.signalkRequestsService.putRequest(paths['wakePath'].path, 1, uuid);
         break;
       default:
         break;
     }
+    // Save the requestId for the mode that was set to 1
+    if (mode === 'n' && reqN) this.lastRequestIds['n'] = reqN;
+    if (mode === 't' && reqT) this.lastRequestIds['t'] = reqT;
+    if (mode === 'w' && reqW) this.lastRequestIds['w'] = reqW;
   }
 
   private subscribeSKRequest(): void {
     this.skRequestSub = this.signalkRequestsService.subscribeRequest().subscribe((requestResult) => {
       if (requestResult.widgetUUID === this.widgetProperties.uuid) {
-        if (requestResult.statusCode !== 200) {
+        // Only update if this is the latest request for a mode and it was successful
+        if (requestResult.statusCode === 200 && requestResult.state === 'COMPLETED') {
+          let foundMode: TrimMode = null;
+          if (this.lastRequestIds['n'] === requestResult.requestId) foundMode = 'n';
+          if (this.lastRequestIds['t'] === requestResult.requestId) foundMode = 't';
+          if (this.lastRequestIds['w'] === requestResult.requestId) foundMode = 'w';
+          if (foundMode) {
+            this.activeMode.set(foundMode);
+          }
+        } else if (requestResult.statusCode !== 200) {
           let errMsg = `Trim Mode Widget ${this.widgetProperties.config.displayName}: `;
           if (requestResult.message) {
             errMsg += requestResult.message;
@@ -198,9 +213,6 @@ export class WidgetTrimmodeComponent extends BaseWidgetComponent implements OnIn
             errMsg += requestResult.statusCode + ' - ' + requestResult.statusCodeDescription;
           }
           this.appService.sendSnackbarNotification(errMsg, 0);
-          
-          // Revert the optimistic update by re-running updateActiveMode with the last known values
-          this.updateActiveMode();
         }
       }
     });

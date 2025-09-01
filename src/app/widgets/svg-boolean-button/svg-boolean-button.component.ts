@@ -43,9 +43,13 @@ export class SvgBooleanButtonComponent implements OnInit, DoCheck {
   ngDoCheck(): void {
     this.viewBox = this.pressed ? this.toggleOn : this.toggleOff;
     const data = this.data();
-    if(data.color != this.ctrlColor) {
+    if(data && data.color && data.color != this.ctrlColor) {
       this.ctrlColor = data.color;
       this.getColors(data.color);
+    }
+
+    if (!data) {
+      this.ctrlColor = 'contrast';
     }
 
     const theme = this.theme();

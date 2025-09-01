@@ -34,7 +34,8 @@ import { WidgetWindComponent } from '../../../widgets/widget-wind/widget-wind.co
 import { WidgetLabelComponent } from '../../../widgets/widget-label/widget-label.component';
 import { WidgetSliderComponent } from '../../../widgets/widget-slider/widget-slider.component';
 import { WidgetTrimmodeComponent } from '../../../widgets/widget-trimmode/widget-trimmode.component';
-
+import { WidgetMomentaryButtonComponent } from '../../../widgets/widget-momentary-button/widget-momentary-button.component';
+import { WidgetBoatAttitudeComponent } from '../../../widgets/widget-boat-attitude/widget-boat-attitude.component';
 
 @Component({
   selector: 'dashboard',
@@ -84,7 +85,9 @@ export class DashboardComponent implements AfterViewInit, OnDestroy{
       WidgetPositionComponent,
       WidgetLabelComponent,
       WidgetSliderComponent,
-      WidgetTrimmodeComponent
+      WidgetTrimmodeComponent,
+      WidgetMomentaryButtonComponent,
+      WidgetBoatAttitudeComponent
     ]);
 
     effect(() => {

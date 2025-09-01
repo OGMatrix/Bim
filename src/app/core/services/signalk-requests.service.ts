@@ -149,6 +149,7 @@ export class SignalkRequestsService {
     };
 
     this.requests.push(request); // save to private array pending response with widgetUUID so we can filter response from subscriber
+    console.log("[Request Service] PUT Request sent. Request ID: " + requestId + " Path: " + noSelfPath + " Value: " + value);
     return requestId; // return the ID to the Subscriber, if tracking of individual request is required
   }
 
@@ -159,6 +160,8 @@ export class SignalkRequestsService {
    */
   private updateRequest(delta: ISignalKDeltaMessage) {
     const index = this.requests.findIndex(r => r.requestId == delta.requestId);
+    console.log(this.requests[0])
+    console.log(delta);
     if (index > -1) {  // exists in local array
       this.requests[index].state = delta.state;
       this.requests[index].statusCode = delta.statusCode;

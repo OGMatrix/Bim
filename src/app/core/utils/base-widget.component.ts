@@ -117,22 +117,32 @@ export abstract class BaseWidgetComponent extends BaseWidget {
     */
   protected createDataObservable(): void {
     // check if Widget has properties
+    let paths = {};
     if (this.widgetProperties === undefined) return;
-    if (Object.keys(this.widgetProperties.config.paths).length == 0) {
+    if (Object.keys(this.widgetProperties.config ? this.widgetProperties.config.paths : this.defaultConfig.paths).length == 0) {
+      this.dataStream = undefined;
+      return;
+    } else if (Object.keys(this.defaultConfig.paths).length == 0) {
       this.dataStream = undefined;
       return;
     } else {
       this.dataStream = [];
     }
 
-    Object.keys(this.widgetProperties.config.paths).forEach(pathKey => {
+    if (!this.widgetProperties.config) {
+      paths = this.defaultConfig.paths;
+    } else {
+      paths = this.widgetProperties.config.paths;
+    }
+
+    Object.keys(paths).forEach(pathKey => {
       // check if Widget has valid path
-      if (typeof (this.widgetProperties.config.paths[pathKey].path) != 'string' || this.widgetProperties.config.paths[pathKey].path == '' || this.widgetProperties.config.paths[pathKey].path == null) {
+      if (typeof (paths[pathKey].path) != 'string' || paths[pathKey].path == '' || paths[pathKey].path == null) {
         return;
       } else {
         this.dataStream.push({
           pathName: pathKey,
-          observable: this.DataService.subscribePath(this.widgetProperties.config.paths[pathKey].path, this.widgetProperties.config.paths[pathKey].source)
+          observable: this.DataService.subscribePath(paths[pathKey].path, paths[pathKey].source)
         });
       }
     })
@@ -156,15 +166,27 @@ export abstract class BaseWidgetComponent extends BaseWidget {
       this.createDataObservable();
     }
 
-    const pathType = this.widgetProperties.config.paths[pathName].pathType;
-    const path = this.widgetProperties.config.paths[pathName].path;
-    const convert = this.widgetProperties.config.paths[pathName].convertUnitTo;
-    const widgetSample = this.widgetProperties.config.paths[pathName].sampleTime;
-    const dataTimeout = this.widgetProperties.config.dataTimeout * 1000;
-    const retryDelay = 5000;
-    const timeoutErrorMsg = `[Widget] ${this.widgetProperties.config.displayName} - ${dataTimeout / 1000} second data update timeout reached for `;
-    const retryErrorMsg = `[Widget] ${this.widgetProperties.config.displayName} - Retrying in ${retryDelay / 1000} secondes`;
+    let paths: any = {};
+    let config: any = {};
 
+    if (!this.widgetProperties.config) {
+      paths = this.defaultConfig.paths;
+      config = this.defaultConfig;
+    } else {
+      paths = this.widgetProperties.config.paths;
+      config = this.widgetProperties.config;
+    }
+
+    const pathType = paths[pathName].pathType;
+    const path = paths[pathName].path;
+    const convert = paths[pathName].convertUnitTo;
+    const widgetSample = paths[pathName].sampleTime;
+    const dataTimeout = config.dataTimeout * 1000;
+    const retryDelay = 5000;
+    const timeoutErrorMsg = `[Widget] ${config.displayName} - ${dataTimeout / 1000} second data update timeout reached for `;
+    const retryErrorMsg = `[Widget] ${config.displayName} - Retrying in ${retryDelay / 1000} secondes`;
+
+    console.log(`[Widget] ${config.displayName} - Observing path ${path} as ${pathType} with sample time ${widgetSample}ms`);
 
     const observer = this.buildObserver(pathName, subscribeNextFunction);
 
@@ -178,7 +200,7 @@ export abstract class BaseWidgetComponent extends BaseWidget {
     let dataPipe$;
     // if numeric apply unit conversion
     if (pathType == 'number') {
-      if (this.widgetProperties.config.enableTimeout) {
+      if (config.enableTimeout) {
         dataPipe$ = pathObs.observable.pipe(
           // filterNullish(),
           map(x => ({
@@ -219,7 +241,7 @@ export abstract class BaseWidgetComponent extends BaseWidget {
         );
       }
     } else if (pathType == 'string' || pathType == 'Date') {
-      if (this.widgetProperties.config.enableTimeout) {
+      if (config.enableTimeout) {
         dataPipe$ = pathObs.observable.pipe(
           // filterNullish(),
           sampleTime(widgetSample),

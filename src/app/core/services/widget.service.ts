@@ -168,6 +168,22 @@ export class WidgetService {
       componentClassName: 'WidgetTrimmodeComponent'
     },
     {
+      name: 'Momentary Button',
+      description: 'A simple momentary push button that sends a numeric value to Signal K when pressed and released.',
+      icon: 'buttonWidget',
+      category: 'Basic',
+      selector: 'widget-momentary-button',
+      componentClassName: 'WidgetMomentaryButtonComponent'
+    },
+    {
+      name: 'Boat Attitude',
+      description: 'A visual representation of the boat\'s roll and pitch attitude using SVG graphics. The boat image tilts and rolls based on real-time data inputs.',
+      icon: 'boatattitudeWidget',
+      category: 'Components',
+      selector: 'widget-boat-attitude',
+      componentClassName: 'WidgetBoatAttitudeComponent',
+    },
+    {
       name: 'Embed Webpage Viewer',
       description: 'Use this widget to embed a view of an external web based applications, such as Grafana graphs, other Signal K Apps and related tools, in your dashboard for a seamless integration. Interactions with the embedded page are not supported.',
       icon: 'embedWidget',

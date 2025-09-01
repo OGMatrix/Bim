@@ -1,0 +1,108 @@
+<widget-host [(config)]="widgetProperties.config" [id]="widgetProperties.uuid" (configChange)="updateConfig($event)">
+    <div class="widget-boat-attitude">
+        
+        <div class="attitude-display">
+            <!-- Enhanced Roll indicator -->
+            <div class="roll-indicator">
+                <span class="value">
+                    {{ rollText }}°
+                </span>
+                <span class="label">ROLL</span>
+                <!-- Visual roll indicator bar -->
+                <div class="roll-bar">
+                    <div class="roll-marker" [style.transform]="'translateX(' + (currentRoll * 2) + 'px)'"></div>
+                </div>
+            </div>
+
+            <!-- Enhanced Pitch indicator -->
+            <div class="pitch-indicator">
+                <span class="label">PITCH</span>
+                <span class="value">
+                    {{ pitchText }}°
+                </span>
+                <!-- Visual pitch indicator bar -->
+                <div class="pitch-bar">
+                    <div class="pitch-marker" [style.transform]="'translateY(' + (-currentPitch * 2) + 'px)'"></div>
+                </div>
+            </div>
+
+            <!-- Enhanced Boat SVG with realistic transformation -->
+            <svg version="1.0" xmlns="http://www.w3.org/2000/svg" 
+                 width="450pt" height="490pt" viewBox="0 0 450 490"
+                 preserveAspectRatio="xMidYMid meet" 
+                 [style]="getBoatDynamicStyle()"
+                 [attr.transform]="getSvgTransform()">
+                
+                <!-- Enhanced reference grid -->
+                <defs>
+                    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                        <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(100, 150, 200, 0.2)" stroke-width="0.5"/>
+                    </pattern>
+                    
+                    <!-- Gradient for water line -->
+                    <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:rgba(0, 150, 255, 0.3);stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:rgba(0, 100, 200, 0.6);stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Grid background -->
+                <rect width="100%" height="100%" fill="url(#grid)" opacity="0.3"/>
+                
+                <!-- Horizon line that moves with pitch -->
+                <line x1="0" y1="245" x2="450" y2="245" 
+                      stroke="rgba(200, 220, 255, 0.6)" 
+                      stroke-width="2" 
+                      stroke-dasharray="15,5"
+                      [style.transform]="'translateY(' + (currentPitch * -2) + 'px)'" />
+                
+                <!-- Center reference point -->
+                <circle cx="225" cy="245" r="3" fill="rgba(255, 255, 255, 0.4)" />
+
+                <!-- Enhanced boat hull with improved graphics -->
+                <g transform="translate(0,490) scale(0.1,-0.1)">                    
+                    <!-- Main hull shape with enhanced styling -->
+                    <path
+                        d="M1286 4035 c-39 -14 -90 -55 -108 -89 c-13 -25 -276 -944 -271 -949 c9 -9 116 28 121 42 c3 9 60 205 127 435 c109 382 122 421 148 440 c28 20 41 21 455 24 c235 2 441 0 458 -3 c20 -3 35 -14 42 -31 c8 -17 12 -129 12 -364 l0 -340 l30 0 l30 0 l0 348 c0 285 3 352 14 368 c14 18 32 19 455 22 c492 3 500 2 525 -60 c8 -18 67 -218 131 -444 l117 -410 l59 -16 c48 -13 59 -13 59 -3 c0 30 -259 917 -277 947 c-10 18 -38 46 -62 63 l-43 30 l-991 2 c-825 2 -999 0 -1031 -12z"
+                        fill="#ffffff" 
+                        stroke="#1a1a1a" 
+                        stroke-width="12"
+                        style="filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))" />
+
+                    <!-- Upper deck details with gradient -->
+                    <path
+                        d="M2250 3133 c-653 -62 -1193 -161 -1660 -307 c-190 -59 -272 -90 -284 -109 c-10 -16 35 -157 117 -368 c72 -182 60 -166 151 -194 c116 -35 297 -80 476 -120 c85 -18 147 -34 137 -34 c-34 -2 -340 49 -500 83 c-118 25 -157 30 -157 20 c0 -23 186 -385 267 -519 c113 -188 242 -380 267 -397 c11 -7 286 -61 426 -83 c168 -26 400 -46 600 -52 l195 -6 l-4 514 c-4 623 8 1417 21 1374 c5 -17 10 -438 11 -959 l2 -929 l195 6 c212 6 434 27 630 57 c179 29 383 71 398 83 c22 17 173 241 258 382 c79 131 274 508 274 530 c0 9 -40 4 -132 -16 c-143 -30 -399 -74 -488 -83 l-55 -6 l60 15 c33 8 94 21 135 30 c122 27 349 84 436 110 l81 25 l51 129 c88 220 143 391 133 410 c-6 10 -74 38 -183 74 c-472 155 -967 257 -1538 316 c-241 25 -276 28 -320 24z"
+                        fill="#e8e8e8" 
+                        stroke="#2a2a2a" 
+                        stroke-width="8"
+                        style="filter: drop-shadow(0 0 5px rgba(200, 220, 255, 0.4))" />
+
+                    <!-- Bow detail with metallic finish -->
+                    <path
+                        d="M1141 1096 c2 -2 263 -120 579 -261 c523 -235 577 -257 603 -247 c78 29 1135 507 1127 510 c-4 2 -68 -8 -141 -22 c-253 -48 -491 -73 -871 -92 l-128 -6 l-1 -82 c0 -44 -4 -99 -8 -121 c-7 -30 -9 -10 -10 81 l-1 122 l-127 6 c-368 18 -619 44 -869 91 c-128 24 -162 29 -153 21z"
+                        fill="#f5f5f5" 
+                        stroke="#333333" 
+                        stroke-width="6"
+                        style="filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))" />
+                </g>
+                
+                <!-- Attitude angle indicators -->
+                <g class="angle-indicators">
+                    <!-- Roll angle arc -->
+                    <path d="M 200 245 A 25 25 0 0 1 250 245" 
+                          fill="none" 
+                          stroke="rgba(255, 200, 100, 0.6)" 
+                          stroke-width="2"
+                          [style.transform]="'rotate(' + (currentRoll) + 'deg)'"
+                          style="transform-origin: 225px 245px;" />
+                    
+                    <!-- Pitch angle indicator -->
+                    <line x1="225" y1="220" x2="225" y2="270" 
+                          stroke="rgba(100, 255, 200, 0.6)" 
+                          stroke-width="2"
+                          [style.transform]="'translateY(' + (currentPitch * -1) + 'px)'" />
+                </g>
+            </svg>
+        </div>
+    </div>
+</widget-host>
